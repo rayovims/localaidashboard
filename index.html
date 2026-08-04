@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local AI Dashboard</title>
+<link rel="stylesheet" href="app/styles.css">
+</head>
+<body>
+<div id="stage">
+  <svg id="wires" viewBox="0 0 1920 1080">
+    <defs>
+      <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="2.2" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+  </svg>
+</div>
+
+<script>
+  // ?scene=<name> loads configs/<name>.js (default: example). document.write keeps
+  // this synchronous so it works over file:// with no server or modules.
+  (function () {
+    let scene = new URLSearchParams(location.search).get("scene") || "example";
+    if (!/^[\w-]+$/.test(scene)) scene = "example";
+    document.write('<script src="configs/' + scene + '.js"><\/script>');
+  })();
+</script>
+<script src="app/app.js"></script>
+</body>
+</html>

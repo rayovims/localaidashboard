@@ -1,0 +1,266 @@
+/* ============================================================================
+   Fleet stage — presentation. Machine colors/positions come from the scene
+   config via inline styles and CSS vars (--accent per card, --c-hero global).
+   ============================================================================ */
+
+:root {
+  --page: #06090d;
+  --surface: #10161d;
+  --surface-hi: #16202a;
+  --ink: #f2f5f7;
+  --ink-2: #aab4bd;
+  --ink-3: #6b7683;
+  --hairline: rgba(255,255,255,.08);
+
+  /* injected by app.js from the scene config */
+  --c-hero: #67a400;
+  --glow-a: #67a400;
+  --glow-b: #d55181;
+  --glow-c: #9085e9;
+
+  --mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+  --sans: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--page);
+  overflow: hidden;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+
+/* ------- fixed 1920x1080 stage, scaled to fit the window ------- */
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%,-50%) scale(1);
+  transform-origin: center;
+  background:
+    radial-gradient(900px 620px at 50% 44%, color-mix(in srgb, var(--glow-a) 7%, transparent), transparent 70%),
+    radial-gradient(700px 500px at 12% 90%, color-mix(in srgb, var(--glow-b) 5%, transparent), transparent 70%),
+    radial-gradient(700px 500px at 88% 10%, color-mix(in srgb, var(--glow-c) 5%, transparent), transparent 70%),
+    var(--page);
+}
+#stage::before { /* faint grid */
+  content: ""; position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(0deg,  rgba(255,255,255,.022) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.022) 0 1px, transparent 1px 48px);
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 30%, transparent 78%);
+}
+#stage::after { /* vignette */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,.5) 100%);
+}
+
+/* ---------------- header ---------------- */
+header {
+  position: absolute; left: 64px; right: 64px; top: 40px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  z-index: 5;
+}
+.kicker {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .32em;
+  color: var(--ink-3); text-transform: uppercase; margin-bottom: 8px;
+}
+h1 { font-size: 42px; font-weight: 750; letter-spacing: .015em; line-height: 1; }
+h1 em { font-style: normal; color: var(--c-hero); }
+.head-right { text-align: right; padding-top: 6px; }
+.series-badge {
+  display: inline-block; font-family: var(--mono); font-size: 13px;
+  letter-spacing: .12em; color: var(--c-hero);
+  border: 1px solid color-mix(in srgb, var(--c-hero) 45%, transparent);
+  border-radius: 999px;
+  padding: 7px 16px; background: color-mix(in srgb, var(--c-hero) 8%, transparent);
+}
+.tagline {
+  margin-top: 10px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-3);
+  letter-spacing: .08em;
+}
+
+/* ---------------- link layer (SVG) ---------------- */
+#wires { position: absolute; inset: 0; z-index: 1; }
+.wire-base { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 5; }
+.wire { fill: none; stroke-width: 2; stroke-linecap: round; opacity: .8; }
+.wire-glow { filter: url(#soft); }
+g.link, .packet { transition: opacity .45s; }
+
+.wire-label {
+  position: absolute; z-index: 2; font-family: var(--mono); font-size: 12px;
+  letter-spacing: .05em; color: var(--ink-2);
+  background: rgba(6,9,13,.82); border: 1px solid var(--hairline);
+  border-radius: 8px; padding: 5px 12px; white-space: nowrap;
+  transition: opacity .45s;
+}
+.wire-label b { font-weight: 600; }
+
+/* ---------------- machine cards ---------------- */
+.card {
+  position: absolute; z-index: 3;
+  width: 356px; min-height: 176px;
+  background: linear-gradient(160deg, var(--surface-hi), var(--surface) 60%);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  border-radius: 14px;
+  padding: 16px 18px 14px;
+  cursor: pointer;
+  transition: opacity .45s, filter .45s, transform .3s, box-shadow .3s;
+  box-shadow: 0 6px 30px rgba(0,0,0,.45),
+              inset 0 0 40px color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(0,0,0,.55), 0 0 24px color-mix(in srgb, var(--accent) 18%, transparent); }
+
+.key-badge {
+  position: absolute; top: 10px; right: 12px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  border: 1px solid var(--hairline); border-radius: 5px;
+  padding: 1px 6px; opacity: .7; transition: opacity .5s;
+}
+
+.card-top { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+       box-shadow: 0 0 10px var(--accent); flex: none; }
+.card-name { font-size: 18px; font-weight: 700; letter-spacing: .02em; }
+.role-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  color: color-mix(in srgb, var(--accent) 80%, #fff 20%);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px; padding: 3px 9px; margin-left: auto; margin-right: 26px;
+  white-space: nowrap;
+}
+.card-spec { font-size: 13.5px; color: var(--ink-2); margin: 7px 0 11px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+  background: rgba(255,255,255,.05); border: 1px solid var(--hairline);
+  border-radius: 6px; padding: 3px 8px; white-space: nowrap;
+}
+.card-foot {
+  margin-top: 12px; font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3); letter-spacing: .04em;
+  display: flex; justify-content: space-between; gap: 12px;
+}
+
+/* ---- hero card (the series-focus machine) ---- */
+.card.hero {
+  width: 444px; min-height: 258px;
+  padding: 18px 22px 16px; z-index: 4;
+  box-shadow: 0 10px 50px rgba(0,0,0,.55),
+              0 0 70px color-mix(in srgb, var(--accent) 16%, transparent),
+              inset 0 0 60px color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.card.hero .card-name { font-size: 28px; }
+.card.hero .dot { width: 12px; height: 12px; }
+.hero-sub {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
+  color: var(--ink-2); margin: 3px 0 13px;
+}
+.stat-chips { display: flex; gap: 8px; margin-bottom: 13px; }
+.stat-chip {
+  flex: 1; text-align: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: 9px; padding: 9px 4px 8px;
+}
+.stat-chip b { display: block; font-size: 17px; font-weight: 700; }
+.stat-chip span { font-family: var(--mono); font-size: 10px; color: var(--ink-2); letter-spacing: .08em; }
+.focus-tag {
+  display: inline-block; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: .14em;
+  color: color-mix(in srgb, var(--accent) 45%, #fff);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  border-radius: 999px;
+  padding: 3px 11px; margin-bottom: 9px;
+}
+#pulse-ring {
+  position: absolute; z-index: 3; border-radius: 20px;
+  border: 2px solid color-mix(in srgb, var(--c-hero) 50%, transparent);
+  pointer-events: none;
+}
+body[data-focus]:not(.hero-focused) #pulse-ring { visibility: hidden; }
+@keyframes pulse {
+  0%   { transform: scale(1);    opacity: .55; }
+  70%  { transform: scale(1.12); opacity: 0; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+
+/* ---------------- memory comparison ---------------- */
+#memory {
+  position: absolute; z-index: 4; left: 460px; top: 862px;
+  width: 1000px; height: 168px;
+  background: linear-gradient(160deg, rgba(22,32,42,.72), rgba(16,22,29,.72));
+  border: 1px solid var(--hairline); border-radius: 14px;
+  padding: 16px 26px 14px;
+  backdrop-filter: blur(4px);
+}
+#memory h3 {
+  font-size: 12px; font-weight: 600; color: var(--ink-3); margin-bottom: 14px;
+  letter-spacing: .18em; text-transform: uppercase; font-family: var(--mono);
+}
+.bar-row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; transition: opacity .45s; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-row:hover .bar-fill { filter: brightness(1.18); }
+.bar-name { width: 116px; flex: none; font-size: 13.5px; font-weight: 600; text-align: right; line-height: 1.15; }
+.bar-name span { display: block; font-family: var(--mono); font-size: 10px; font-weight: 400; color: var(--ink-3); }
+.bar-track { flex: 1; height: 22px; border-left: 2px solid rgba(255,255,255,.18); }
+/* resting width is --w; the intro animates up to it, so any fill-mode is safe */
+.bar-fill { height: 100%; width: var(--w); border-radius: 0 4px 4px 0; transition: filter .2s; }
+.play .bar-fill { animation: grow 1s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: var(--d, 1.2s); }
+@keyframes grow { from { width: 0; } to { width: var(--w); } }
+.bar-val { width: 80px; flex: none; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bar-val span { font-size: 11px; font-weight: 400; color: var(--ink-3); }
+
+/* app.js adds .dim to #memory + .focused to the matching row when the
+   spotlighted machine has a bar */
+#memory.dim .bar-row:not(.focused) { opacity: .3; }
+
+/* ---------------- recording chrome (auto-hides) ---------------- */
+#hints {
+  position: absolute; z-index: 5; left: 0; right: 0; bottom: 16px;
+  text-align: center; font-family: var(--mono); font-size: 11.5px;
+  color: var(--ink-3); letter-spacing: .06em;
+  transition: opacity .5s;
+}
+#hints kbd {
+  font-family: inherit; border: 1px solid var(--hairline); border-radius: 4px;
+  padding: 1px 6px; margin: 0 2px; color: var(--ink-2);
+}
+body.hide-chrome #hints, body.hide-chrome .key-badge { opacity: 0; }
+
+/* ---------------- focus mode ---------------- */
+body[data-focus] .card:not(.focused) { opacity: .22; filter: grayscale(.5) brightness(.8); }
+body[data-focus] .card.focused { transform: scale(1.045); }
+body[data-focus] .card.hero.focused {
+  box-shadow: 0 10px 50px rgba(0,0,0,.55),
+              0 0 100px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+body[data-focus] g.link { opacity: .07; }
+body[data-focus] g.link.lit { opacity: 1; }
+body[data-focus] .wire-label { opacity: .1; }
+body[data-focus] .wire-label.lit { opacity: 1; }
+body.hero-focused #pulse-ring { border-color: color-mix(in srgb, var(--c-hero) 80%, transparent); }
+
+/* ---------------- intro animation ----------------
+   backwards fill only: elements rejoin the normal cascade after the intro,
+   so focus dimming/scaling can restyle them.
+   Per-card stagger comes from --intro-delay (set inline by app.js). */
+body:not(.play) :is(header, .card, #pulse-ring, #memory, #hints) { opacity: 0; }
+body:not(.play) .wire { stroke-dasharray: 1; stroke-dashoffset: 1; }
+body:not(.play) .packet { opacity: 0; }
+.play header       { animation: fadeDown .7s .1s backwards; }
+.play .card        { animation: rise .65s backwards; animation-delay: var(--intro-delay, .45s); }
+.play #pulse-ring  { animation: fadeIn .8s 1.5s backwards, pulse 3.2s 1.5s ease-out infinite; }
+.play #memory      { animation: rise .65s 1.45s backwards; }
+.play #hints       { animation: fadeIn .8s 2.2s backwards; }
+.play .wire        { stroke-dasharray: 1; animation: draw 1s 1.55s cubic-bezier(.4,0,.2,1) backwards; }
+.play .packet      { animation: fadeIn .5s 2.6s backwards; }
+@keyframes rise     { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes draw     { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* ?still — freeze intro timing for stills/thumbnails */
+body.still, body.still * { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important; }
